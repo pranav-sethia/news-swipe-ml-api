@@ -34,5 +34,28 @@ app.add_middlewear(
     allow_headers=["*"],
 )
 
+# ----- DEFINE REQUEST BODY 
+
+# Tells FastAPI what to expect in the request body
+class TextItem(BaseModel):
+    text: str
+
+# ----- CREATE /embed ENDPOINT
+
+@app.post("/embed")
+def create_embeddings(item: TextItem):
+    """
+    Receives and returns 384 dimensional text embedding
+    """
+
+    # Prevent crashing from overly long text
+    if (len(item.text) > 2000):
+        return {"error": "Input text is too long. Maximum length is 2000 characters."}, 400
+    
+    try:
+        embedding = model.encode(item.text).tolist() # Converts numpy array to Python list for JSON
+        return {"embedding": embedding}
+    except Exception as e:
+        return {"error": f"Failed to generate embedding: {e}"}, 500
 
 
