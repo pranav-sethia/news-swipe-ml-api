@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 try:
     device = device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
-except exception as e:
+except Exception as e:
     print(f"Error checking device - defaulting to CPU: {e}")
     device = "cpu"
 
@@ -26,7 +26,7 @@ app = FastAPI()
 # ----- CORS CONFIGURATION
 
 # Allows React app to communicate with this FastAPI backend
-app.add_middlewear(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
     allow_credentials=True,
@@ -63,3 +63,7 @@ def create_embeddings(item: TextItem):
 app.get("/")
 def read_root():
     return {"status": "Embedding service is running."}
+
+app.get("/health")
+def health_check():
+    return {"status": "ok", "model_loaded": True}
