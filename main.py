@@ -59,3 +59,7 @@ def create_embeddings(item: TextItem):
         return {"error": f"Failed to generate embedding: {e}"}, 500
 
 
+# ----- root/health CHECK ENDPOINT
+app.get("/")
+def read_root():
+    return {"status": "Embedding service is running."}
