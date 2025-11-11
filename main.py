@@ -1,72 +1,43 @@
-# ----- IMPORTS
-
-import torch
-from fastapi import FastAPI 
+from fastapi import FastAPI
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer 
 from fastapi.middleware.cors import CORSMiddleware
+from sentence_transformers import SentenceTransformer
+import torch
 
-# ----- LOAD MODEL 
-
-# Check if GPU is available and set device accordingly
-try:
-    device = device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Using device: {device}")
-except Exception as e:
-    print(f"Error checking device - defaulting to CPU: {e}")
-    device = "cpu"
-
-# Load the pre-trained SentenceTransformer model
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', device=device)
-print("Model loaded successfully.")
-
-# ----- FASTAPI SETUP
 app = FastAPI()
 
-# ----- CORS CONFIGURATION
-
-# Allows React app to communicate with this FastAPI backend
+# Enable CORS for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ----- DEFINE REQUEST BODY 
+# Lazy-load model
+model = None
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Tells FastAPI what to expect in the request body
 class TextItem(BaseModel):
     text: str
 
-# ----- CREATE /embed ENDPOINT
+@app.on_event("startup")
+def startup_event():
+    global model
+    print("Model will load on first request, not at startup.")
 
 @app.post("/embed")
 def create_embeddings(item: TextItem):
-    """
-    Receives and returns 384 dimensional text embedding
-    """
+    global model
+    if model is None:
+        print("⏳ Loading model for the first time...")
+        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', device=device)
+        print("✅ Model loaded successfully.")
 
-    # Prevent crashing from overly long text
-    if (len(item.text) > 2000):
-        return {"error": "Input text is too long. Maximum length is 2000 characters."}, 400
-    
-    try:
-        embedding = model.encode(item.text).tolist() # Converts numpy array to Python list for JSON
-        return {"embedding": embedding}
-    except Exception as e:
-        return {"error": f"Failed to generate embedding: {e}"}, 500
+    embedding = model.encode(item.text).tolist()
+    return {"embedding": embedding}
 
-
-# ----- root/health CHECK ENDPOINT
 @app.get("/")
-def read_root():
-    return {"status": "Embedding service is running."}
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "model_loaded": True}
-
-
-    
+def root():
+    return {"status": "Running (model loads lazily)"}
