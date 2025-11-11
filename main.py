@@ -60,10 +60,13 @@ def create_embeddings(item: TextItem):
 
 
 # ----- root/health CHECK ENDPOINT
-app.get("/")
+@app.get("/")
 def read_root():
     return {"status": "Embedding service is running."}
 
-app.get("/health")
+@app.get("/health")
 def health_check():
     return {"status": "ok", "model_loaded": True}
+
+
+    
