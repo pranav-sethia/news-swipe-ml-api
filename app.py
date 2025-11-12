@@ -19,14 +19,17 @@ def embed_text(text):
     embedding = model.encode(text).tolist()
     return {"embedding": embedding}
 
-# Define Gradio API endpoint (no UI)
-app = gr.Interface(
-    fn=embed_text,
-    inputs=gr.Textbox(label="Text Input"),
-    outputs=gr.JSON(label="Embedding"),
-    title="News Swipe Embedder",
-    description="Embeds text using MiniLM for the News Swipe project."
-)
+# --- API-only Gradio setup using Blocks ---
+with gr.Blocks() as demo:
+    gr.JSON(embed_text, label="Embedding")
 
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=7860)
+    # Launch with server_name=0.0.0.0 so it's reachable from outside
+    # show_api=True ensures /api/predict endpoint works
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        show_api=True,
+        allow_flagging="never",
+        share=False  # or True if you want a public shareable link
+    )
