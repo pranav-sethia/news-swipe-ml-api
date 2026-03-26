@@ -25,7 +25,6 @@ iface = gr.Interface(
     fn=embed_text,
     inputs=gr.Textbox(lines=2, placeholder="Enter text here"),
     outputs=gr.JSON(),
-    allow_flagging="never",
     title="News Swipe Embedder",
     description="Embeds text using MiniLM for the News Swipe project."
 )
