@@ -30,11 +30,9 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    # Hide the UI but enable API
     iface.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        show_api=True,  # enables /api/predict
         inbrowser=False,
         share=False
     )
